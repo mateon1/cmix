@@ -7,7 +7,7 @@
 
 class Encoder {
  public:
-  Encoder(std::ofstream* os, Predictor* p);
+  Encoder(std::ofstream* os, std::ofstream* es, Predictor* p);
   void Encode(int bit);
   void Flush();
 
@@ -15,7 +15,8 @@ class Encoder {
   void WriteByte(unsigned int byte);
   unsigned int Discretize(float p);
 
-  std::ofstream* os_;
+  std::ofstream* os_, *es_;
+  unsigned int ospos, espos;
   unsigned int x1_, x2_;
   Predictor* p_;
 };

@@ -1,10 +1,11 @@
 #include "encoder.h"
 
-Encoder::Encoder(std::ofstream* os, Predictor* p) : os_(os), x1_(0),
+Encoder::Encoder(std::ofstream* os, std::ofstream* es, Predictor* p) : os_(os), es_(es), x1_(0),
     x2_(0xffffffff), p_(p) {}
 
 void Encoder::WriteByte(unsigned int byte) {
   os_->put(byte);
+  if ((++ospos & 7) == 0) os_->flush();
 }
 
 unsigned int Encoder::Discretize(float p) {
@@ -12,9 +13,12 @@ unsigned int Encoder::Discretize(float p) {
 }
 
 void Encoder::Encode(int bit) {
-  const unsigned int p = Discretize(p_->Predict());
+  const float pf = p_->Predict();
+  const unsigned int p = Discretize(pf);
   const unsigned int xmid = x1_ + ((x2_ - x1_) >> 16) * p +
       (((x2_ - x1_) & 0xffff) * p >> 16);
+  es_->write((const char*)&pf, sizeof(float));
+  if ((++espos & 7) == 0) es_->flush();
   if (bit) {
     x2_ = xmid;
   } else {
